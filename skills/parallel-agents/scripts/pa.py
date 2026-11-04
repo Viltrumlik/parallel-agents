@@ -8,7 +8,7 @@ so a crashed agent never blocks anyone for long.
 State lives in <git common dir>/parallel-agents (shared by every worktree of
 the repo and never committed), or in .parallel-agents/ outside git.
 
-Zero dependencies. Python 3.8+. macOS, Linux and Windows.
+Zero dependencies. Python 3.9+. macOS, Linux and Windows.
 """
 
 import argparse

@@ -8,7 +8,7 @@ Thanks for helping make parallel agents less chaotic.
 python3 -m unittest discover -s tests -v
 ```
 
-The tests drive the real CLI in throwaway git repositories, including a race where 16 agents claim the same file at once. They need Python 3.8+ and git, nothing else.
+The tests drive the real CLI in throwaway git repositories, including a race where 16 agents claim the same file at once. They need Python 3.9+ and git, nothing else.
 
 ## Principles
 
