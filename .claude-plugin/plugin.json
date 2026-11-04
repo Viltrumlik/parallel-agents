@@ -1,0 +1,13 @@
+{
+  "name": "parallel-agents",
+  "description": "Run Claude Code, Codex, Cursor and other coding agents on the same repo without them overwriting each other: agents claim files before editing, see who holds what, and leave handoff notes.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Alisher",
+    "url": "https://github.com/Viltrumlik"
+  },
+  "homepage": "https://github.com/Viltrumlik/parallel-agents",
+  "repository": "https://github.com/Viltrumlik/parallel-agents",
+  "license": "MIT",
+  "keywords": ["parallel-agents", "multi-agent", "coordination", "file-locking", "claude-code", "codex", "cursor", "skills"]
+}

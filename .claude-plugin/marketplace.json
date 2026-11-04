@@ -1,0 +1,20 @@
+{
+  "name": "parallel-agents",
+  "owner": {
+    "name": "Alisher",
+    "url": "https://github.com/Viltrumlik"
+  },
+  "metadata": {
+    "description": "Coordination for parallel coding agents working in one repository."
+  },
+  "plugins": [
+    {
+      "name": "parallel-agents",
+      "source": "./",
+      "description": "Agents claim files before editing, see who holds what, and leave handoff notes. Works with Claude Code, Codex, Cursor and Gemini CLI.",
+      "version": "0.1.0",
+      "category": "productivity",
+      "keywords": ["parallel-agents", "multi-agent", "coordination", "file-locking"]
+    }
+  ]
+}

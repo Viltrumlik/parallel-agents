@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.9", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Tests
+        run: python -m unittest discover -s tests -v
+
+  skill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skill and manifests are well-formed
+        run: |
+          python3 - <<'EOF'
+          import json, re, pathlib
+          skill = pathlib.Path("skills/parallel-agents/SKILL.md").read_text()
+          front = re.match(r"^---\n(.*?)\n---\n", skill, re.S).group(1)
+          name = re.search(r"^name: (.+)$", front, re.M).group(1).strip()
+          desc = re.search(r"^description: (.+)$", front, re.M).group(1).strip()
+          assert name == "parallel-agents", name
+          assert re.fullmatch(r"[a-z0-9-]{1,64}", name)
+          assert 0 < len(desc) <= 1024, len(desc)
+          for f in (".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"):
+              json.loads(pathlib.Path(f).read_text())
+          print("ok")
+          EOF
