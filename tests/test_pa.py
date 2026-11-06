@@ -96,6 +96,20 @@ class ClaimingTest(RepoTest):
         self.claim("claude", "src/models.py")
         self.assertEqual(self.claim("claude", "src/models.py", "README.md").returncode, 0)
 
+    def test_a_file_inside_a_folder_you_hold_adds_no_second_claim(self):
+        self.claim("claude", "src/api/", extra=("--why", "add refund endpoint"))
+        self.assertEqual(self.claim("claude", "src/api/views.py").returncode, 0)
+        board = json.loads(run(self.repo, "status", "--json").stdout)["agents"]
+        self.assertEqual([c["paths"] for c in board["claude"]], [["src/api/"]])
+        self.assertEqual(board["claude"][0]["why"], "add refund endpoint")
+
+    def test_a_folder_is_still_recorded_when_you_only_held_a_file_in_it(self):
+        self.claim("claude", "src/api/views.py")
+        self.assertEqual(self.claim("claude", "src/api/").returncode, 0)
+        board = json.loads(run(self.repo, "status", "--json").stdout)["agents"]
+        self.assertEqual(sorted(p for c in board["claude"] for p in c["paths"]),
+                         ["src/api/", "src/api/views.py"])
+
     def test_release_some_then_all(self):
         self.claim("claude", "src/models.py", "README.md")
         run(self.repo, "release", "README.md", "--as", "claude")
@@ -286,6 +300,24 @@ class UnitTest(unittest.TestCase):
         for a, b, expected in cases:
             self.assertEqual(pa.overlaps(a, b), expected, (a, b))
             self.assertEqual(pa.overlaps(b, a), expected, (b, a))
+
+    def test_covers(self):
+        cases = [
+            ("src/", "src/a.py", True),
+            ("src/api", "src/api/views.py", True),
+            ("src/api/", "src/api", True),
+            ("Src/", "src/a.py", True),
+            ("src/a.py", "src/", False),       # a file does not cover its folder
+            ("src/", "srcx/a.py", False),
+            ("src/**/*.py", "src/x/y.py", True),
+            ("src/**/*.py", "lib/a.py", False),
+            ("src/", "src/*.py", False),       # a glob is always recorded on its own
+            ("@db", "@db", True),
+            ("@db", "db", False),
+            ("src/", "@migrations", False),
+        ]
+        for held, wanted, expected in cases:
+            self.assertEqual(pa.covers(held, wanted), expected, (held, wanted))
 
     def test_parse_ttl(self):
         self.assertEqual(pa.parse_ttl("90s"), 90)

@@ -9,5 +9,5 @@
   "homepage": "https://github.com/Viltrumlik/parallel-agents",
   "repository": "https://github.com/Viltrumlik/parallel-agents",
   "license": "MIT",
-  "keywords": ["parallel-agents", "multi-agent", "coordination", "file-locking", "claude-code", "codex", "cursor", "skills"]
+  "keywords": ["parallel-agents", "multi-agent", "coordination", "file-locking", "hooks", "claude-code", "codex", "cursor", "skills"]
 }

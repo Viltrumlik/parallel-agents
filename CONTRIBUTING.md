@@ -20,7 +20,7 @@ The tests drive the real CLI in throwaway git repositories, including a race whe
 
 ## Good first contributions
 
-- Hooks that enforce claims in a specific agent (Claude Code `PreToolUse`, Cursor hooks, Codex)
+- Hooks that enforce claims in Cursor or Codex, the way `hooks/hooks.json` and `pa_hook.py` do it for Claude Code
 - Reports of how a particular agent follows (or ignores) the skill, with a transcript
 - `pa watch`: a live view of claims in the terminal
 

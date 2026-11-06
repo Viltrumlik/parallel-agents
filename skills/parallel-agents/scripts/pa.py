@@ -358,6 +358,19 @@ def same_claim_path(a, b):
     return a.casefold().rstrip("/") == b.casefold().rstrip("/")
 
 
+def covers(held, wanted):
+    """Does a path I already hold also cover this one? A folder covers what is
+    under it, so claiming a file inside a folder of mine records nothing new.
+    Keeps the board readable when an agent claims a folder and then edits
+    thirty files in it."""
+    h, w = held.casefold().rstrip("/"), wanted.casefold().rstrip("/")
+    if h == w:
+        return True
+    if h.startswith("@") or w.startswith("@") or _is_glob(w):
+        return False
+    return _matches(w, h) if _is_glob(h) else _under(w, h)
+
+
 def find_overlaps(ws, board, agent, paths, now):
     """Split other agents' overlapping claims into blocking (same worktree)
     and heads-up warnings (another worktree of the same repo)."""
@@ -471,7 +484,7 @@ def cmd_claim(ws, args):
             return EXIT_CONFLICT
 
         held = [p for c in mine for p in c["paths"]]
-        new_paths = [p for p in paths if not any(same_claim_path(p, h) for h in held)]
+        new_paths = [p for p in paths if not any(covers(h, p) for h in held)]
         for c in mine:
             c["ttl"] = max(c["ttl"], ttl)
         if new_paths:

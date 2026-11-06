@@ -21,7 +21,7 @@
 
 Running several coding agents at once is the new normal. In one checkout, though, they collide: two agents edit the same file, one runs migrations while the other changes models, both start a dev server on port 3000. **parallel-agents** gives them a tiny shared protocol: **claim before you edit, see who holds what, leave a note, release.**
 
-It's an [Agent Skill](https://agentskills.io), a `SKILL.md` plus one zero-dependency Python script, so it works in every agent that reads skills.
+It's an [Agent Skill](https://agentskills.io), a `SKILL.md` plus one zero-dependency Python script, so it works in every agent that reads skills. In Claude Code a hook enforces it, so an agent that never read the skill still can't overwrite another one's work.
 
 ## How it works
 
@@ -35,6 +35,7 @@ pa release --as claude-7f2c                                          # done
 
 If another agent already holds something, `pa claim` refuses (exit code `3`), says who holds it and why, and the agent works on something else instead.
 
+- **Enforced in Claude Code.** A `PreToolUse` hook claims each path before the edit and refuses the edit outright if another agent holds it. Everywhere else the skill carries the protocol.
 - **Atomic.** Checking and claiming happen under one file lock. If 16 agents claim the same file at the same moment, exactly one wins (there's a test for that).
 - **Never stuck.** Claims expire after 30 minutes without activity, so a crashed agent can't block the repo. Agents refresh them by re-claiming before each batch of edits.
 - **Conservative.** Any doubt counts as overlap: paths compare case-insensitively, symlinks are resolved, a folder that doesn't exist yet still covers what will be created in it, and `src/**/*.py` collides with `src/app.py`.
@@ -56,6 +57,17 @@ npx skills add Viltrumlik/parallel-agents
 /plugin marketplace add Viltrumlik/parallel-agents
 /plugin install parallel-agents@parallel-agents
 ```
+
+Installed as a plugin, the protocol is **enforced**: a `PreToolUse` hook runs before every `Edit`, `Write`, `MultiEdit` and `NotebookEdit`, claims the path for this session, and denies the edit — naming who holds it and why — if another agent got there first. Each Claude Code session is its own agent, named after its session id, so two sessions on one repo coordinate with no setup.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `PA_AS` | `claude-<session id>` | this agent's name on the board |
+| `PA_HOOK_TTL` | `15m` | how long an auto-claim lives without a further edit |
+| `PA_HOOK_MODE` | `claim` | `check` blocks without taking the path |
+| `PA_HOOK_DISABLE` | unset | set to anything to turn the hook off |
+
+If anything goes wrong — a payload it doesn't understand, a missing `pa.py`, a board that won't answer — the edit goes through. A coordination helper is never the reason a session stops working.
 
 **Manually:** copy [`skills/parallel-agents`](skills/parallel-agents) into your agent's skills folder: `~/.claude/skills/`, `~/.codex/skills/`, `~/.gemini/skills/`, or `.agents/skills/` inside a project.
 
@@ -91,7 +103,7 @@ Exit codes: `0` ok · `1` error (disk, lock) · `2` wrong command, nothing was c
 
 **Why not just use git worktrees?** Use both. Worktrees isolate files, but the agents still share your database, ports and lockfile, and you meet their overlapping edits later as merge conflicts. parallel-agents coordinates the shared resources and warns about overlaps across worktrees while there's still time to split the work.
 
-**Is it enforced?** It's an advisory protocol, like a good team convention: agents that follow the skill respect claims, and an agent that ignores it isn't stopped. Hard enforcement through agent hooks (Claude Code `PreToolUse`, Cursor hooks) is on the roadmap.
+**Is it enforced?** In Claude Code, yes. Install it as a plugin and a `PreToolUse` hook runs before every edit: it claims the path for this session, and refuses the edit if another agent holds it. An agent that never loaded the skill still cannot overwrite another one's work. Everywhere else it's an advisory protocol that agents follow through the skill — Cursor and Codex hooks are next.
 
 **Does it work across machines?** No, it coordinates agents that share one filesystem. That covers the common setup of several agents on your laptop or one dev box.
 
@@ -99,7 +111,7 @@ Exit codes: `0` ok · `1` error (disk, lock) · `2` wrong command, nothing was c
 
 ## Roadmap
 
-- [ ] Optional hooks that block edits to files claimed by another agent (Claude Code, Cursor, Codex)
+- [x] Hooks that block edits to files another agent holds — Claude Code done, Cursor and Codex next
 - [ ] `pa watch`: a live terminal view of who holds what
 - [ ] Editor status-bar integrations
 - [ ] Claims that follow git branches
