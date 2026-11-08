@@ -268,6 +268,40 @@ class OutsideGitTest(unittest.TestCase):
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 
+    def test_watch_without_git(self):
+        tmp = os.path.realpath(tempfile.mkdtemp(prefix="pa-nogit-"))
+        try:
+            self.assertEqual(run(tmp, "claim", "notes.txt", "--as", "claude").returncode, 0)
+            r = run(tmp, "watch", "--once")
+            self.assertEqual(r.returncode, 0)
+            self.assertIn("claude", r.stdout)
+            self.assertIn("notes.txt", r.stdout)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
+class WatchTest(RepoTest):
+    def test_watch_once_empty(self):
+        r = run(self.repo, "watch", "--once")
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("No active claims. Everything is free.", r.stdout)
+
+    def test_watch_once_with_claims(self):
+        self.claim("alice", "src/models.py")
+        r = run(self.repo, "watch", "--once")
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("alice", r.stdout)
+        self.assertIn("src/models.py", r.stdout)
+
+    def test_watch_once_json(self):
+        self.claim("bob", "README.md")
+        r = run(self.repo, "watch", "--once", "--json")
+        self.assertEqual(r.returncode, 0)
+        data = json.loads(r.stdout)
+        self.assertTrue(data.get("ok"))
+        self.assertIn("bob", data["agents"])
+        self.assertEqual(data["agents"]["bob"][0]["paths"], ["README.md"])
+
 
 class UnitTest(unittest.TestCase):
     def test_overlaps(self):

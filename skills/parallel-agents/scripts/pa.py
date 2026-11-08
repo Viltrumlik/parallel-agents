@@ -560,6 +560,21 @@ def cmd_check(ws, args):
     return EXIT_CONFLICT if conflicts else EXIT_OK
 
 
+def _format_status_board(board, now, ws):
+    if not board:
+        return "No active claims. Everything is free."
+    lines = []
+    for agent, claims in sorted(board.items()):
+        lines.append(agent)
+        for c in claims:
+            where = "" if same_path(c.get("worktree"), ws.root) else "  [worktree %s]" % c.get("worktree")
+            why = ('  "%s"' % c["why"]) if c.get("why") else ""
+            lines.append("  %s%s  (since %s ago, expires in %s)%s" % (
+                ", ".join(c["paths"]), why, ago(now - c["created"]),
+                ago(c["heartbeat"] + c["ttl"] - now), where))
+    return "\n".join(lines)
+
+
 def cmd_status(ws, args):
     now = time.time()
     with locked(ws):
@@ -571,17 +586,41 @@ def cmd_status(ws, args):
             a: [dict(c, expires_in=int(c["heartbeat"] + c["ttl"] - now)) for c in cs]
             for a, cs in board.items()}})
         return EXIT_OK
-    if not board:
-        print("No active claims. Everything is free.")
-        return EXIT_OK
-    for agent, claims in sorted(board.items()):
-        print(agent)
-        for c in claims:
-            where = "" if same_path(c.get("worktree"), ws.root) else "  [worktree %s]" % c.get("worktree")
-            why = ('  "%s"' % c["why"]) if c.get("why") else ""
-            print("  %s%s  (since %s ago, expires in %s)%s" % (
-                ", ".join(c["paths"]), why, ago(now - c["created"]),
-                ago(c["heartbeat"] + c["ttl"] - now), where))
+    print(_format_status_board(board, now, ws))
+    return EXIT_OK
+
+
+def cmd_watch(ws, args):
+    interval = getattr(args, "interval", 1.0) or 1.0
+    once = getattr(args, "once", False)
+    is_tty = sys.stdout.isatty()
+    try:
+        while True:
+            now = time.time()
+            with locked(ws):
+                board = load_all(ws)
+            board = {a: [c for c in cs if is_active(c, now)] for a, cs in board.items()}
+            board = {a: cs for a, cs in board.items() if cs}
+            if getattr(args, "json", False):
+                emit_json({"ok": True, "state": ws.state, "agents": {
+                    a: [dict(c, expires_in=int(c["heartbeat"] + c["ttl"] - now)) for c in cs]
+                    for a, cs in board.items()}})
+            else:
+                rendered = _format_status_board(board, now, ws)
+                if is_tty:
+                    sys.stdout.write("\033[H\033[J" + rendered + "\n")
+                else:
+                    sys.stdout.write(rendered + "\n")
+                sys.stdout.flush()
+            if once:
+                break
+            time.sleep(interval)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if is_tty:
+            sys.stdout.write("\033[0m")
+            sys.stdout.flush()
     return EXIT_OK
 
 
@@ -716,6 +755,10 @@ def build_parser():
     who(sp, required=False)
 
     add("status", "Show who holds what right now.", cmd_status)
+
+    sp = add("watch", "Watch who holds what in real time (until Ctrl-C).", cmd_watch)
+    sp.add_argument("--interval", type=float, default=1.0, help="refresh interval in seconds (default 1.0)")
+    sp.add_argument("--once", action="store_true", help="render once and exit")
 
     sp = add("renew", "Keep your claims alive during long tasks (exit 3 if you hold nothing).", cmd_renew)
     who(sp)
