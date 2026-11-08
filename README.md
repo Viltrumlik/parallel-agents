@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://github.com/Viltrumlik/parallel-agents/actions/workflows/ci.yml"><img src="https://github.com/Viltrumlik/parallel-agents/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Agent%20Skills-SKILL.md-7c3aed" alt="Agent Skills">
+  <a href="https://pypi.org/project/parallel-agents-cli/"><img src="https://img.shields.io/pypi/v/parallel-agents-cli?color=3775a9&label=pypi" alt="PyPI"></a>
   <img src="https://img.shields.io/badge/dependencies-0-brightgreen" alt="Zero dependencies">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
 </p>
