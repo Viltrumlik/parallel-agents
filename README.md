@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".claude-plugin/icon.png" width="112" alt="parallel-agents icon">
+  <img src="https://raw.githubusercontent.com/Viltrumlik/parallel-agents/main/.claude-plugin/icon.png" width="112" alt="parallel-agents icon">
 </p>
 
 <h1 align="center">parallel-agents</h1>
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="demo/demo.gif" alt="Two agents share a repo: the second agent is blocked from a folder the first one claimed, works on tests instead, and takes the file once the first agent releases it" width="900">
+  <img src="https://raw.githubusercontent.com/Viltrumlik/parallel-agents/main/demo/demo.gif" alt="Two agents share a repo: the second agent is blocked from a folder the first one claimed, works on tests instead, and takes the file once the first agent releases it" width="900">
 </p>
 
 Running several coding agents at once is the new normal. In one checkout, though, they collide: two agents edit the same file, one runs migrations while the other changes models, both start a dev server on port 3000. **parallel-agents** gives them a tiny shared protocol: **claim before you edit, see who holds what, leave a note, release.**
@@ -73,10 +73,10 @@ If anything goes wrong — a payload it doesn't understand, a missing `pa.py`, a
 
 **Manually:** copy [`skills/parallel-agents`](skills/parallel-agents) into your agent's skills folder: `~/.claude/skills/`, `~/.codex/skills/`, `~/.gemini/skills/`, or `.agents/skills/` inside a project.
 
-Optional: put the `pa` command on your PATH so you can use it yourself.
+**Just the `pa` command**, to drive the board yourself from a terminal:
 
 ```bash
-ln -s "$PWD/skills/parallel-agents/scripts/pa.py" /usr/local/bin/pa
+pipx install parallel-agents-cli
 ```
 
 ### Make it always-on
