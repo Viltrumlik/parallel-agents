@@ -45,6 +45,8 @@ If another agent already holds something, `pa claim` refuses (exit code `3`), sa
 
 ## Install
 
+**Requirements:** Python 3.9+ on macOS, Linux or Windows. Nothing to `pip install`. Git is optional: inside a repo the state goes into the git directory, outside one into `.parallel-agents/`.
+
 **Any agent** (Claude Code, Codex, Cursor, Gemini CLI, Copilot…) with the [skills CLI](https://skills.sh):
 
 ```bash
@@ -117,6 +119,28 @@ Exit codes: `0` ok · `1` error (disk, lock) · `2` wrong command, nothing was c
 - [ ] Claims that follow git branches
 
 Ideas and PRs are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Development
+
+```bash
+python3 -m unittest discover -s tests -v   # the full test suite, including the 16-agent race
+bash demo/two-agents.sh                    # two agents sharing a throwaway repo, step by step
+```
+
+CI runs the tests on Ubuntu, macOS and Windows with Python 3.9, 3.10 and 3.13.
+
+```
+skills/parallel-agents/
+├── SKILL.md              # the protocol agents read
+└── scripts/
+    ├── pa.py             # the `pa` CLI: one file, zero dependencies
+    └── pa_hook.py        # Claude Code PreToolUse hook
+hooks/hooks.json          # registers the hook when installed as a plugin
+.claude-plugin/           # plugin and marketplace manifests
+snippets/AGENTS.md        # always-on instructions for AGENTS.md / CLAUDE.md
+tests/                    # end-to-end tests against real git repos
+demo/                     # demo script and GIF generator
+```
 
 ## License
 
