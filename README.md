@@ -135,6 +135,7 @@ skills/parallel-agents/
 └── scripts/
     ├── pa.py             # the `pa` CLI: one file, zero dependencies
     └── pa_hook.py        # Claude Code PreToolUse hook
+pyproject.toml            # the PyPI package: pipx install parallel-agents-cli
 hooks/hooks.json          # registers the hook when installed as a plugin
 .claude-plugin/           # plugin and marketplace manifests
 snippets/AGENTS.md        # always-on instructions for AGENTS.md / CLAUDE.md
